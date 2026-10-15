@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1d52">
+<title>Design World | MYP Design Parents' Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{--sky1:#3b72e8;--sky2:#0b1d52;--green:#3ddc4a;--green2:#17761f;--gold:#ffd23f;--ink:#fff;--panel:#1c1452}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{height:100%;background:#000;overflow:hidden;color:var(--ink);font-family:"Trebuchet MS",Verdana,sans-serif}
+.px{font-family:"Press Start 2P","Courier New",monospace}
+#rotate{display:none;position:fixed;inset:0;background:var(--sky2);z-index:99;align-items:center;justify-content:center;text-align:center;padding:30px;font-family:"Press Start 2P",monospace;font-size:12px;line-height:1.8;color:var(--gold)}
+@media (orientation:landscape) and (max-height:600px){#rotate{display:flex}#app{display:none}}
+
+#app{position:fixed;inset:0;max-width:440px;margin:0 auto;background:linear-gradient(#3b72e8,var(--sky1) 40%,var(--sky2));overflow:hidden}
+.scr{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;padding:24px 20px;text-align:center}
+.scr.on{display:flex;animation:fi .4s steps(4)}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+
+/* pixel scenery */
+.arches{position:absolute;z-index:0;pointer-events:none;left:0;right:0;bottom:0;height:45%;background:repeating-linear-gradient(90deg,#c8925a 0 52px,#a8733f 52px 56px);opacity:.55;clip-path:polygon(0 30%,100% 0,100% 100%,0 100%)}
+.ground{position:absolute;z-index:0;pointer-events:none;left:0;right:0;bottom:0;height:60px;background:repeating-linear-gradient(90deg,#c8642b 0 46px,#8a3d17 46px 50px);border-top:6px solid #5a2a0e}
+.cloud{position:absolute;z-index:0;pointer-events:none;width:80px;height:28px;background:#fff;border-radius:18px}
+.cloud::before{content:"";position:absolute;width:36px;height:36px;background:#fff;border-radius:50%;left:12px;top:-18px}
+.cloud::after{content:"";position:absolute;width:28px;height:28px;background:#fff;border-radius:50%;left:40px;top:-12px}
+
+/* splash */
+#splash{justify-content:center;gap:18px}
+#splash .name,#splash .pos,#splash .frame,#splash .pbtn{position:relative;z-index:1}
+#splash .teacher{width:140px;height:164px;margin-top:0}
+#splash .name{font-size:22px;color:var(--gold);text-shadow:4px 4px 0 #000;line-height:1.5;margin-top:0}
+#splash .pos{font-size:12px;line-height:1.8;color:#fff;text-shadow:2px 2px 0 #000;max-width:340px}
+#splash .frame{width:260px;height:6px;background:var(--green);box-shadow:0 0 0 3px #000;margin:10px 0}
+
+.pbtn{font-family:"Press Start 2P",monospace;font-size:12px;background:var(--green);color:#063;border:4px solid #063;padding:14px 16px;cursor:pointer;box-shadow:5px 5px 0 #000;text-decoration:none;display:inline-block;line-height:1.4;margin-top:6px}
+.pbtn:active{transform:translate(3px,3px);box-shadow:2px 2px 0 #000}
+.pbtn.gold{background:var(--gold);color:#6b4500;border-color:#6b4500}
+.pbtn.sm{font-size:10px;padding:10px 12px}
+.blink{animation:bl 1s steps(2) infinite}
+@keyframes bl{50%{opacity:.2}}
+
+/* story */
+.teacher{position:relative;z-index:1;width:170px;height:200px;margin-top:10px;filter:drop-shadow(4px 4px 0 rgba(0,0,0,.35))}
+.teacher svg{width:100%;height:100%}
+.dbox{position:relative;z-index:2;cursor:pointer;margin-top:auto;width:100%;background:var(--panel);border:4px solid var(--gold);box-shadow:0 0 0 4px #000;padding:16px;text-align:left;min-height:170px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.spk{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--gold)}
+.dbox p{font-size:18px;line-height:1.5}
+.dbox .pbtn{align-self:flex-end}
+
+/* game */
+#game{justify-content:flex-start;padding:10px 0 0}
+.hud{width:100%;display:flex;justify-content:space-between;padding:6px 14px;font-family:"Press Start 2P",monospace;font-size:11px;text-shadow:2px 2px 0 #000;z-index:3}
+.hud .hearts{color:#ff5a7a}
+.hud .gold{color:var(--gold)}
+#cv{width:100%;max-width:440px;aspect-ratio:360/520;display:block;border:4px solid #000;box-shadow:0 0 0 4px var(--gold);background:#7db8ff;touch-action:none;margin-top:6px}
+.ctrl{display:grid;grid-template-columns:1fr 2fr 1fr;gap:10px;width:100%;margin-top:14px;padding:0 6px}
+.ctrl button{font-family:"Press Start 2P",monospace;font-size:14px;height:64px;border:4px solid #000;background:var(--panel);color:#fff;box-shadow:4px 4px 0 #000;touch-action:manipulation}
+.ctrl button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000}
+.ctrl #bj{background:var(--green);color:#063;font-size:12px}
+.tip{font-size:13px;margin-top:10px;color:#cfe0ff}
+
+.modal{position:absolute;inset:0;background:rgba(5,8,30,.8);display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}
+.modal.hidden{display:none}
+.mcard{background:var(--panel);border:4px solid var(--gold);box-shadow:0 0 0 4px #000;padding:20px;max-width:380px;text-align:left;display:flex;flex-direction:column;gap:12px}
+.mcard h3{font-family:"Press Start 2P",monospace;font-weight:normal;font-size:13px;color:var(--gold);line-height:1.6}
+.mcard p{font-size:17px;line-height:1.5}
+.mcard .take{font-size:16px;background:#0c0a3d;border-left:6px solid var(--green);padding:10px;line-height:1.5}
+.mcard .take b{color:var(--green)}
+.mcard .pbtn{align-self:flex-end}
+
+/* outro */
+#outro{overflow:auto;justify-content:flex-start}
+#outro h2{font-family:"Press Start 2P",monospace;font-weight:normal;font-size:14px;color:var(--gold);margin:8px 0 12px;line-height:1.6}
+#outro ul{list-style:none;text-align:left;width:100%;font-size:17px;line-height:1.5}
+#outro li{background:#0c0a3d;border-left:6px solid var(--green);padding:10px 12px;margin-bottom:10px}
+#outro li b{color:var(--green)}
+.linkrow{display:flex;flex-direction:column;gap:12px;align-items:center;margin:12px 0 18px}
+.linkrow small{font-size:13px;color:#cfe0ff}
+/* ---- teacher reactions ---- */
+.rwrap{width:110px;height:132px;margin:0 auto}
+.rwrap svg,.teacher svg{width:100%;height:100%}
+.mreact{display:flex;flex-direction:column;align-items:center;gap:0}
+.mreact .bubble{width:100%}
+.bubble{background:#fff;color:#1b1b1b;border:4px solid #000;box-shadow:4px 4px 0 #000;padding:10px 12px;font-size:16px;line-height:1.4;margin-top:10px;text-align:left;width:100%;position:relative}
+.jump{animation:jmp .5s steps(4) 2}
+@keyframes jmp{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px)}}
+.shake{animation:shk .4s steps(2) 3}
+@keyframes shk{0%{transform:translateX(-6px)}50%{transform:translateX(6px)}100%{transform:none}}
+.pop{animation:pp .5s steps(3)}
+@keyframes pp{0%{transform:scale(.5)}100%{transform:scale(1)}}
+.sway{animation:sw 1.2s ease-in-out infinite alternate}
+@keyframes sw{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
+
+/* ---- vibrant feedback slide ---- */
+#outro{background:linear-gradient(160deg,#ff6fb1 0%,#7b5cff 45%,#2fd3c6 100%);overflow-y:auto;padding:20px 18px 40px}
+#outro .teacher{width:110px;height:132px;margin-top:0}
+.fb-title{font-family:"Press Start 2P",monospace;font-size:12px;color:#ffd23f;text-shadow:3px 3px 0 #000;margin:18px 0 10px;line-height:1.6;text-align:center}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.tile{background:var(--c);color:#111;border:4px solid #000;box-shadow:4px 4px 0 #000;padding:10px;text-align:left;cursor:pointer;min-height:70px;transition:transform .2s;font-size:14px}
+.tile b{font-family:"Press Start 2P",monospace;font-size:9px;display:block;margin-bottom:6px;line-height:1.5}
+.tile p{display:none;font-size:14px;line-height:1.4}
+.tile.open{transform:scale(1.04) rotate(-1deg)}
+.tile.open p{display:block}
+.moods{display:flex;gap:10px;width:100%}
+.mood{flex:1;font-size:30px;background:#1c1452;border:4px solid #000;box-shadow:4px 4px 0 #000;padding:8px 0;cursor:pointer;transition:transform .2s;color:#fff}
+.mood span{display:block;font-family:"Press Start 2P",monospace;font-size:7px;margin-top:6px}
+.mood.sel{background:#ffd23f;transform:translateY(-5px) scale(1.06)}
+.stars{display:flex;gap:6px;justify-content:center;font-size:44px}
+.stars span{color:#3a2a6e;cursor:pointer;text-shadow:3px 3px 0 #000;transition:transform .15s}
+.stars span.on{color:#ffd23f}
+.stars span:active{transform:scale(1.3)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%}
+.chip{font-family:"Press Start 2P",monospace;font-size:8px;padding:10px 9px;border:3px solid #000;background:#fff;color:#111;cursor:pointer;box-shadow:3px 3px 0 #000;line-height:1.4}
+.chip.on{background:#3ddc4a;color:#063;transform:translateY(-2px)}
+.big{font-size:14px;padding:18px 16px;width:100%;text-align:center;margin-top:18px}
+.pulse{animation:pl 1.2s ease-in-out infinite}
+@keyframes pl{50%{box-shadow:0 0 0 8px rgba(255,210,63,.35),5px 5px 0 #000}}
+.cf{position:fixed;top:-30px;width:10px;height:14px;z-index:50;pointer-events:none;animation:cf 2.8s linear forwards}
+@keyframes cf{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+
+<div id="rotate">PLEASE TURN YOUR PHONE TO PORTRAIT MODE</div>
+
+<div id="app">
+
+  <!-- SPLASH: name and position only -->
+  <section id="splash" class="scr on">
+    <div class="cloud" style="left:20px;top:60px"></div>
+    <div class="cloud" style="right:10px;top:150px;transform:scale(.7)"></div>
+    <div class="arches"></div>
+    <div class="ground"></div>
+    <div class="teacher" id="tchrSplash"></div>
+    <div class="name px"><span style="font-size:13px;color:#fff">Hi, I am</span><br>ARUN</div>
+    <div class="frame"></div>
+    <div class="pos px">Mechanical Design Engineer<br><br>MYP Design - Teacher</div>
+    <button class="pbtn blink" id="startBtn">TAP TO START</button>
+  </section>
+
+  <!-- STORY -->
+  <section id="story" class="scr">
+    <div class="arches"></div>
+    <div class="ground"></div>
+    <div class="teacher" id="tchr"></div>
+    <div class="dbox">
+      <div class="spk px">TEACHER</div>
+      <p id="dtext"></p>
+      <button class="pbtn sm" id="dnext">NEXT &#9654;</button>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" class="scr">
+    <div class="hud px"><span class="hearts" id="hearts"></span><span class="gold" id="prog">ATL 0/5</span></div>
+    <canvas id="cv" width="360" height="520"></canvas>
+    <div class="ctrl">
+      <button id="bl">&#9664;</button>
+      <button id="bj">JUMP</button>
+      <button id="br">&#9654;</button>
+    </div>
+    <p class="tip">Tap JUMP to collect ATL coins. &#9664; &#9654; change speed.</p>
+
+    <div id="modal" class="modal hidden">
+      <div class="mcard">
+        <div class="mreact" id="mreact"></div>
+        <h3 id="mt"></h3>
+        <p id="mb"></p>
+        <div class="take"><b>Takes home:</b> <span id="mh"></span></div>
+        <button class="pbtn sm" id="mok">KEEP RUNNING &#9654;</button>
+      </div>
+    </div>
+
+    <div id="over" class="modal hidden">
+      <div class="mcard">
+        <div class="mreact" id="mreact2"></div>
+        <h3>ITERATE!</h3>
+        <p>Mistakes are part of the design cycle. Every test makes the next version better.</p>
+        <button class="pbtn sm" id="retry">TRY AGAIN</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- OUTRO: interactive feedback -->
+  <section id="outro" class="scr">
+    <div class="teacher" id="tchr2"></div>
+    <div class="bubble" id="fbBubble">Great run! Tap a skill tile to see what your child takes home.</div>
+
+    <div class="fb-title">TAKE-HOME SKILLS</div>
+    <div class="tiles" id="takeList"></div>
+
+    <div class="fb-title">HOW WAS TONIGHT?</div>
+    <div class="moods" id="moods">
+      <button class="mood" data-v="love">&#129321;<span>LOVED IT</span></button>
+      <button class="mood" data-v="good">&#128578;<span>GOOD</span></button>
+      <button class="mood" data-v="meh">&#128528;<span>MEH</span></button>
+    </div>
+
+    <div class="fb-title">RATE THE GAME</div>
+    <div class="stars" id="stars">
+      <span data-n="1">&#9733;</span><span data-n="2">&#9733;</span><span data-n="3">&#9733;</span><span data-n="4">&#9733;</span><span data-n="5">&#9733;</span>
+    </div>
+
+    <div class="fb-title">WHICH SKILL DID YOUR CHILD TALK ABOUT?</div>
+    <div class="chips" id="chips">
+      <button class="chip" data-k="Thinking">THINKING</button>
+      <button class="chip" data-k="Research">RESEARCH</button>
+      <button class="chip" data-k="Communication">COMMUNICATION</button>
+      <button class="chip" data-k="Social">SOCIAL</button>
+      <button class="chip" data-k="Self-management">SELF-MGMT</button>
+    </div>
+
+    <a class="pbtn gold big pulse" id="formBtn" href="#" target="_blank" rel="noopener">SEND MY FEEDBACK &#9654;</a>
+    <button class="pbtn sm" id="replay" style="margin-top:14px">PLAY AGAIN</button>
+  </section>
+</div>
+
+<script>
+/* ============ SETTINGS ============ */
+// Replace with your own Google Form link (Forms > Send > link icon > Copy)
+const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdFkr3Lz9WDZxV_g2UZNTgNBmExNrzZaVc7f9Cbl3FNDnBtSg/viewform?usp=sharing&ouid=112614505373588976456";
+
+/* ============ TEACHER AVATAR (stylised, matches the photo: curly hair, beard, sunglasses, navy blazer, jeans, watch) ============ */
+const TSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 170">
+<rect x="36" y="128" width="20" height="40" fill="#5b7fb5"/>
+<rect x="64" y="128" width="20" height="40" fill="#5b7fb5"/>
+<path d="M22 150 L26 88 Q28 76 42 74 L78 74 Q92 76 94 88 L98 150 Q98 160 90 160 L30 160 Q22 160 22 150 Z" fill="#1f2c4d"/>
+<path d="M52 74 L60 102 L68 74 Z" fill="#f2f2f2"/>
+<rect x="52" y="60" width="16" height="16" fill="#e0a882"/>
+<ellipse cx="60" cy="42" rx="20" ry="23" fill="#e8b48f"/>
+<g fill="#3a2719"><circle cx="40" cy="30" r="9"/><circle cx="50" cy="20" r="10"/><circle cx="62" cy="18" r="10"/><circle cx="75" cy="23" r="9"/><circle cx="82" cy="34" r="7"/><circle cx="38" cy="40" r="6"/></g>
+<rect x="42" y="36" width="16" height="9" rx="3" fill="#1b1b1b"/>
+<rect x="62" y="36" width="16" height="9" rx="3" fill="#1b1b1b"/>
+<rect x="58" y="38" width="4" height="2" fill="#1b1b1b"/>
+<path d="M42 50 Q44 70 60 70 Q76 70 78 50 Q72 60 60 62 Q48 60 42 50Z" fill="#4a3324"/>
+<path d="M50 54 Q55 50 60 53 Q65 50 70 54 Q65 57 60 56 Q55 57 50 54Z" fill="#3a2719"/>
+<path d="M54 60 Q60 63 66 60" stroke="#8a4f3a" stroke-width="2" fill="none"/>
+<ellipse cx="60" cy="118" rx="14" ry="7" fill="#e8b48f"/>
+<rect x="66" y="112" width="8" height="8" fill="#c9a24a"/>
+</svg>`;
+document.getElementById('tchr').innerHTML = TSVG;
+document.getElementById('tchr2').innerHTML = TSVG;
+const timg = new Image();
+timg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(TSVG);
+
+/* ---- teacher moods: swaps the expression and adds props ---- */
+const MOODS = {
+  happy: '<path d="M54 60 Q60 63 66 60" stroke="#8a4f3a" stroke-width="2" fill="none"/>',
+  wow:   '<ellipse cx="60" cy="61" rx="4" ry="5" fill="#5a2a1a"/><path d="M40 26 Q46 21 52 26" stroke="#3a2719" stroke-width="2" fill="none"/><path d="M68 26 Q74 21 80 26" stroke="#3a2719" stroke-width="2" fill="none"/>',
+  cheer: '<path d="M50 58 Q60 72 70 58 Z" fill="#5a2a1a"/><rect x="54" y="58" width="12" height="3" fill="#fff"/><rect x="90" y="58" width="10" height="36" rx="5" fill="#1f2c4d"/><circle cx="95" cy="54" r="7" fill="#e8b48f"/>',
+  think: '<path d="M55 61 L65 61" stroke="#8a4f3a" stroke-width="2"/><text x="92" y="24" font-size="22" fill="#ffd23f" font-family="monospace">?</text>',
+  oops:  '<path d="M53 64 Q60 58 67 64" stroke="#8a4f3a" stroke-width="2" fill="none"/><path d="M86 30 Q91 38 86 42 Q81 38 86 30Z" fill="#7fd6ff"/>'
+};
+const ANIM = { happy:'sway', wow:'pop', cheer:'jump', think:'sway', oops:'shake' };
+function teacherSVG(m){ return TSVG.replace(MOODS.happy, MOODS[m] || MOODS.happy); }
+
+function react(id, mood, text){
+  $(id).innerHTML = '<div class="rwrap ' + (ANIM[mood] || 'sway') + '">' + teacherSVG(mood) + '</div><div class="bubble">' + text + '</div>';
+}
+function reactionFor(it){
+  if(it.type === 'info') return ['wow', 'Here is what MYP Design is all about!'];
+  const map = {
+    'Thinking':        ['think', 'Let\'s think about it. Why does this work?'],
+    'Research':        ['wow', 'Great research! Good designers ask questions.'],
+    'Communication':   ['happy', 'Clear explanations win people over!'],
+    'Social':          ['cheer', 'Teamwork! Feedback makes everyone better.'],
+    'Self-management': ['cheer', 'You bounced back. That is the skill!']
+  };
+  return map[it.k];
+}
+function storyMood(i){
+  const m = ['happy', 'wow', 'think', 'cheer'][i] || 'happy';
+  const el = $('tchr');
+  el.innerHTML = teacherSVG(m);
+  el.className = 'teacher ' + ANIM[m];
+  void el.offsetWidth; // restart the animation
+}
+
+// Character on the first page: waves hello with a happy expression
+document.getElementById('tchrSplash').innerHTML = teacherSVG('wow');
+document.getElementById('tchrSplash').className = 'teacher sway';
+
+/* ---- confetti burst ---- */
+function confetti(n){
+  const cols = ['#ffd23f', '#ff6fb1', '#3ddc4a', '#7fd6ff', '#ff9f43'];
+  for(let i = 0; i < n; i++){
+    const s = document.createElement('span');
+    s.className = 'cf';
+    s.style.left = (Math.random() * 100) + 'vw';
+    s.style.background = cols[i % cols.length];
+    s.style.animationDelay = (Math.random() * 0.4) + 's';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 3400);
+  }
+}
+
+/* ============ SCREENS ============ */
+const $ = id => document.getElementById(id);
+function show(id){
+  document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id));
+  requestAnimationFrame(checkButtons);
+}
+
+/* Safety check: warns in the browser console if anything is covering a visible button.
+   Open the console (on a laptop, or via remote debugging on a phone) to see the warning. */
+function checkButtons(){
+  document.querySelectorAll('.scr.on button, .scr.on a.pbtn').forEach(b => {
+    const r = b.getBoundingClientRect();
+    if(!r.width || !r.height) return;
+    const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    if(el && el !== b && !b.contains(el)){
+      console.warn('[Design World] Button "' + (b.id || b.textContent.trim()) + '" is covered by <' + el.tagName.toLowerCase() + ' class="' + el.className + '">');
+    }
+  });
+}
+
+/* ============ STORY ============ */
+const INTRO = [
+  "Hello! I'm really sorry I can't be with you in the room tonight.",
+  "So I'm here digitally, as your kids' Digital Design teacher.",
+  "Let's play a short run together. Your child is the hero.",
+  "Every ATL coin they collect is a skill they practise in my classroom. Jump in!"
+];
+let line = 0, typer = null, typing = false;
+function typeLine(text){
+  clearInterval(typer); typing = true;
+  const el = $('dtext'); let i = 0; el.textContent = '';
+  typer = setInterval(() => {
+    el.textContent = text.slice(0, ++i);
+    if(i >= text.length){ clearInterval(typer); typing = false; }
+  }, 24);
+}
+function nextStory(){
+  // (teacher mood is set in storyMood below, after each new line)
+  if(typing){ clearInterval(typer); $('dtext').textContent = INTRO[line]; typing = false; return; }
+  line++;
+  if(line >= INTRO.length){ startGame(); return; }
+  typeLine(INTRO[line]);
+  storyMood(line);
+}
+$('startBtn').onclick = () => { show('story'); line = 0; typeLine(INTRO[0]); storyMood(0); };
+// One handler on the whole dialogue box (text, NEXT button and label).
+// Button clicks bubble up to the box, so only one handler is needed and it cannot fire twice.
+document.querySelector('#story .dbox').addEventListener('click', nextStory);
+
+/* ============ ATL DATA ============ */
+const ATL = {
+  'Thinking':        {d:'Analyse, reason and make design decisions.', h:'"Why did you choose this material?"'},
+  'Research':        {d:'Find and judge information, such as real user needs, before designing.', h:'Asking better questions and checking sources.'},
+  'Communication':   {d:'Present ideas clearly through sketches, models and talk.', h:'Explaining a design to someone who has never seen it.'},
+  'Social':          {d:'Work in teams with clear roles, respect and useful feedback.', h:'Giving and receiving feedback without taking it personally.'},
+  'Self-management': {d:'Plan time, manage materials and bounce back after setbacks.', h:'Turning a failed prototype into the next plan.'}
+};
+const INFO_MYP = {
+  title:'WHAT IS MYP DESIGN?',
+  body:'Students inquire, develop ideas, create solutions and evaluate them. Four criteria (A to D) are scored from 0 to 8 with one shared rubric, so feedback shows progress, not percentages.',
+  take:'A process, not just a product. They learn to improve their work step by step.'
+};
+
+/* ============ GAME ============ */
+const cv = $('cv'), ctx = cv.getContext('2d');
+const W = 360, H = 520, GROUND = 440, FIN = 2400, PX = 70;
+const SPEEDS = [1, 1.5, 2.2]; let speedIdx = 1;
+const ITEMS = [
+  {id:'a1', wx:350,  type:'atl', k:'Thinking'},
+  {id:'a2', wx:700,  type:'atl', k:'Research'},
+  {id:'a3', wx:1050, type:'atl', k:'Communication'},
+  {id:'i1', wx:1250, type:'info'},
+  {id:'a4', wx:1450, type:'atl', k:'Social'},
+  {id:'a5', wx:1800, type:'atl', k:'Self-management'},
+  {id:'f1', wx:FIN, type:'finish'}
+];
+const done = new Set();
+let S = null, running = false;
+
+function newRun(){
+  // One small obstacle on the ground under each coin: jump over it and grab the coin at the top of the jump
+  const coinObstacles = ITEMS.filter(i => i.type === 'atl').map(i => ({wx: i.wx - 2, w: 20, h: 26}));
+  return {dist:0, h:0, vh:0, lives:7, inv:0, paused:false, running:true, frame:0, nextSpawn:260, obs:coinObstacles, pending:null};
+}
+function startGame(){
+  S = newRun(); show('game'); running = true; updateHUD();
+}
+function updateHUD(){
+  $('hearts').textContent = '\u2665'.repeat(S ? S.lives : 7);
+  const n = ITEMS.filter(i => i.type === 'atl' && done.has(i.id)).length;
+  $('prog').textContent = 'ATL ' + n + '/5';
+}
+
+function jump(){ if(S && S.running && !S.paused && S.h <= 0.5){ S.vh = 11; } }
+$('bj').onpointerdown = e => { e.preventDefault(); jump(); };
+cv.onpointerdown = e => { e.preventDefault(); jump(); };
+$('bl').onpointerdown = e => { e.preventDefault(); speedIdx = Math.max(0, speedIdx - 1); };
+$('br').onpointerdown = e => { e.preventDefault(); speedIdx = Math.min(SPEEDS.length - 1, speedIdx + 1); };
+addEventListener('keydown', e => {
+  if(e.code === 'Space' || e.code === 'ArrowUp'){ e.preventDefault(); jump(); }
+  if(e.code === 'ArrowLeft') speedIdx = Math.max(0, speedIdx - 1);
+  if(e.code === 'ArrowRight') speedIdx = Math.min(SPEEDS.length - 1, speedIdx + 1);
+});
+
+function trigger(it){
+  const R = reactionFor(it);
+  react('mreact', R[0], R[1]);
+  S.paused = true;
+  done.add(it.id); updateHUD();
+  if(it.type === 'info'){
+    $('mt').textContent = INFO_MYP.title;
+    $('mb').textContent = INFO_MYP.body;
+    $('mh').textContent = INFO_MYP.take;
+  } else {
+    const a = ATL[it.k];
+    $('mt').textContent = 'ATL SKILL: ' + it.k.toUpperCase();
+    $('mb').textContent = a.d;
+    $('mh').textContent = a.h;
+  }
+  $('modal').classList.remove('hidden');
+}
+$('mok').onclick = () => { $('modal').classList.add('hidden'); if(S) S.paused = false; };
+
+function gameOver(){
+  S.running = false; running = false;
+  react('mreact2', 'oops', 'Oops! Mistakes help you iterate. Try again!');
+  $('over').classList.remove('hidden');
+}
+$('retry').onclick = () => {
+  $('over').classList.add('hidden');
+  S = newRun(); running = true;
+  updateHUD();
+};
+
+function finish(){
+  S.running = false; running = false;
+  setTimeout(() => { buildOutro(); show('outro'); confetti(60); }, 700);
+}
+
+function update(){
+  if(!S || !S.running || S.paused) return;
+  const sp = SPEEDS[speedIdx];
+  S.dist += sp; S.frame++;
+  S.vh -= 0.6; S.h += S.vh;
+  if(S.h <= 0){ S.h = 0; S.vh = 0; }
+  if(S.inv > 0) S.inv--;
+
+  // No random obstacles: the only obstacles are the small ones placed under each coin
+  S.obs = S.obs.filter(o => o.wx - S.dist > -80);
+
+  // collisions with obstacles
+  for(const o of S.obs){
+    const sx = o.wx - S.dist + PX;
+    if(S.inv === 0 && sx < PX + 20 && sx + o.w > PX && S.h < o.h){
+      S.lives--; S.inv = 80; S.vh = 4; updateHUD();
+      if(S.lives <= 0){ gameOver(); return; }
+      break;
+    }
+  }
+
+  // items and triggers
+  for(const it of ITEMS){
+    if(done.has(it.id)) continue;
+    const sx = it.wx - S.dist + PX;
+    if(it.type === 'finish'){ if(sx < 130){ finish(); return; } continue; }
+    if(it.type === 'info'){ if(sx < 110){ trigger(it); return; } continue; }
+    // ATL coin floats above its obstacle (height 80): collect it at the top of a jump
+    if(sx > PX - 14 && sx < PX + 30 && S.h > 30 && S.h < 95){ trigger(it); return; }
+  }
+}
+
+/* ---- drawing ---- */
+function drawBg(){
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#3b72e8'); g.addColorStop(.6, '#8fc4ff'); g.addColorStop(1, '#f6d9a8');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // clouds
+  ctx.fillStyle = '#fff';
+  const cx = -((S ? S.dist * .2 : 0) % 220);
+  for(let x = cx; x < W + 220; x += 220){ ctx.fillRect(x + 20, 60, 60, 16); ctx.fillRect(x + 30, 50, 40, 12); }
+  // colosseum-style arches (parallax)
+  const off = S ? -((S.dist * .5) % 60) : 0;
+  for(let x = off - 60; x < W + 60; x += 60){
+    ctx.fillStyle = '#d9a86c'; ctx.fillRect(x, 230, 52, 130);
+    ctx.fillStyle = '#a8733f'; ctx.fillRect(x, 320, 52, 6);
+    for(const y of [250, 290]){
+      ctx.fillStyle = '#6b4a2f';
+      ctx.beginPath(); ctx.arc(x + 26, y + 10, 10, Math.PI, 0); ctx.rect(x + 16, y + 10, 20, 20); ctx.fill();
+    }
+  }
+  // ground
+  ctx.fillStyle = '#c8642b'; ctx.fillRect(0, GROUND, W, H - GROUND);
+  ctx.fillStyle = '#8a3d17';
+  for(let x = -((S ? S.dist : 0) % 46); x < W; x += 46) ctx.fillRect(x, GROUND + 14, 40, 3);
+  ctx.fillStyle = '#5a2a0e'; ctx.fillRect(0, GROUND, W, 6);
+}
+
+function drawObstacle(o, sx){
+  ctx.fillStyle = '#5a6470'; ctx.fillRect(sx, GROUND - o.h, o.w, o.h);
+  ctx.fillStyle = '#3d4550'; ctx.fillRect(sx, GROUND - o.h, o.w, 4);
+}
+
+function drawOrb(k, sx){
+  const cx = sx + 8, cy = GROUND - 80;
+  ctx.fillStyle = '#ffd23f'; ctx.beginPath(); ctx.arc(cx, cy, 13, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#6b4500'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.fillStyle = '#6b4500'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+  ctx.fillText(k[0], cx, cy + 4); ctx.textAlign = 'left';
+}
+
+function drawStudent(x, feet, frame, air){
+  const bob = Math.floor(frame / 6) % 2;
+  // pants
+  ctx.fillStyle = '#2d4f8a';
+  if(air){ ctx.fillRect(x + 4, feet - 14, 6, 12); ctx.fillRect(x + 12, feet - 12, 6, 10); }
+  else { ctx.fillRect(x + 4, feet - 14, 6, 14 - bob * 4); ctx.fillRect(x + 12, feet - 14, 6, 10 + bob * 4); }
+  // green hoodie
+  ctx.fillStyle = '#2fb84a'; ctx.fillRect(x + 2, feet - 30, 18, 17);
+  ctx.fillStyle = '#1f8f35'; ctx.fillRect(x + 2, feet - 16, 18, 3);
+  ctx.fillStyle = '#2fb84a'; ctx.fillRect(x - 1, feet - 28, 4, 12); ctx.fillRect(x + 19, feet - 28, 4, 12);
+  // head
+  ctx.fillStyle = '#f1c49a'; ctx.fillRect(x + 3, feet - 42, 16, 13);
+  ctx.fillStyle = '#222'; ctx.fillRect(x + 13, feet - 37, 2, 2);
+  // green cap
+  ctx.fillStyle = '#22a040'; ctx.fillRect(x + 2, feet - 48, 18, 8); ctx.fillRect(x + 12, feet - 44, 10, 3);
+  ctx.fillStyle = '#fff'; ctx.fillRect(x + 7, feet - 46, 4, 3);
+}
+
+function draw(){
+  ctx.clearRect(0, 0, W, H);
+  drawBg();
+  if(!S) return;
+  // obstacles
+  for(const o of S.obs){
+    const sx = o.wx - S.dist + PX;
+    if(sx > -40 && sx < W + 40) drawObstacle(o, sx);
+  }
+  // items
+  for(const it of ITEMS){
+    if(done.has(it.id) && it.type !== 'finish') continue;
+    const sx = it.wx - S.dist + PX;
+    if(sx < -60 || sx > W + 60) continue;
+    if(it.type === 'atl') drawOrb(it.k, sx);
+    if(it.type === 'info'){
+      ctx.fillStyle = '#6b4a2f'; ctx.fillRect(sx, GROUND - 60, 8, 60);
+      ctx.fillStyle = '#c9a24a'; ctx.fillRect(sx - 14, GROUND - 74, 36, 22);
+      ctx.fillStyle = '#3b2a10'; ctx.font = '12px monospace'; ctx.fillText('MYP?', sx - 10, GROUND - 58);
+    }
+    if(it.type === 'finish'){
+      ctx.drawImage(timg, sx - 10, GROUND - 110, 70, 100);
+      ctx.fillStyle = '#ffd23f'; ctx.font = '10px monospace'; ctx.fillText('FINISH', sx - 6, GROUND - 118);
+    }
+  }
+  // player
+  const air = S.h > 0.5;
+  const blink = S.inv > 0 && Math.floor(S.inv / 6) % 2 === 0;
+  if(!blink) drawStudent(PX, GROUND - S.h, S.frame, air);
+}
+
+let last = 0;
+function loop(ts){
+  update(); draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ============ OUTRO ============ */
+const TAKE = [
+  ['Thinking','Students explain why a design works, not only what it looks like.'],
+  ['Research','They find real user needs before they design.'],
+  ['Communication','They present ideas with sketches, models and clear talk.'],
+  ['Social','They work in teams, give feedback and take it on board.'],
+  ['Self-management','They plan, manage materials and keep going after mistakes.']
+];
+function buildOutro(){
+  const COL = ['#ffd23f', '#7fd6ff', '#ff9fd2', '#9dff8a', '#ffb36b'];
+  $('takeList').innerHTML = TAKE.map(([k, t], i) =>
+    `<div class="tile" style="--c:${COL[i]}"><b>${k.toUpperCase()}</b><p>${t}</p></div>`).join('');
+  document.querySelectorAll('#takeList .tile').forEach(el => el.onclick = () => el.classList.toggle('open'));
+  $('formBtn').href = FORM_URL;
+  setupFeedback();
+}
+/* ---- feedback slide interactions ---- */
+function setupFeedback(){
+  const t = $('tchr2');
+  t.innerHTML = teacherSVG('cheer'); t.className = 'teacher jump';
+  $('fbBubble').textContent = 'Great run! Tap a skill tile to see what your child takes home.';
+  document.querySelectorAll('.mood').forEach(b => b.classList.remove('sel'));
+  document.querySelectorAll('#stars span').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+
+  const reply = (m, text, fx) => {
+    t.innerHTML = teacherSVG(m); t.className = 'teacher ' + ANIM[m];
+    void t.offsetWidth;
+    $('fbBubble').textContent = text;
+    if(fx) confetti(fx);
+  };
+
+  document.querySelectorAll('.mood').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.mood').forEach(x => x.classList.toggle('sel', x === b));
+    const v = b.dataset.v;
+    if(v === 'love') reply('cheer', "Yay! That makes my day! Thank you!", 50);
+    if(v === 'good') reply('happy', 'Thanks! Your feedback helps me improve.');
+    if(v === 'meh')  reply('think', 'Thanks for being honest. What would make it better?');
+  });
+
+  document.querySelectorAll('#stars span').forEach(s => s.onclick = () => {
+    const n = +s.dataset.n;
+    document.querySelectorAll('#stars span').forEach(x => x.classList.toggle('on', +x.dataset.n <= n));
+    if(n === 5) reply('wow', 'Five stars! Thank you so much!', 40);
+    else reply('happy', 'Thanks! You gave ' + n + ' star' + (n > 1 ? 's' : '') + '.');
+  });
+
+  document.querySelectorAll('.chip').forEach(c => c.onclick = () => {
+    c.classList.toggle('on');
+    const picked = document.querySelectorAll('.chip.on').length;
+    if(picked) reply('happy', 'Great! Ask your child to show you what they made with ' + c.dataset.k + '.');
+  });
+
+  $('formBtn').onclick = () => confetti(30);
+}
+
+$('replay').onclick = () => {
+  done.clear(); S = null; running = false; line = 0;
+  updateHUD(); show('splash');
+};
+</script>
+</body>
+</html>
